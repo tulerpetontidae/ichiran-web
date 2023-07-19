@@ -22,6 +22,16 @@ RUN sbcl --load quicklisp.lisp --non-interactive \
          --eval "(ql-util:without-prompting (ql:add-to-init-file))" \
          --eval "(sb-ext:quit)"
 
+# Node.js installation
+RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs
+
+# node js application
+WORKDIR /app
+COPY node-server/package*.json ./
+RUN npm install
+COPY node-server .
+
 # ichiran
 WORKDIR /root
 RUN     git clone https://gitlab.com/yamagoya/jmdictdb.git
@@ -31,14 +41,5 @@ RUN     cp docker/settings.lisp settings.lisp
 RUN     sbcl --non-interactive --eval "(ql:quickload :ichiran)"
 
 ENV PATH=/root/quicklisp/local-projects/ichiran/docker/ichiran-scripts:$PATH
-
 ENTRYPOINT entrypoint.sh
 
-# node js
-FROM node:14
-WORKDIR /app
-COPY node-server/package*.json ./
-RUN npm install
-COPY node-server .
-EXPOSE 3000
-CMD [ "node", "index.js" ]
